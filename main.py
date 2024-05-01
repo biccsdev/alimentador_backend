@@ -128,7 +128,7 @@ async def update_property_item(item: Item):
     WHERE fecha = :fecha
     """
     values = {
-        "porcentaje_contenedor": item.porcentaje_contenedor if item.porcentaje_contenedor is not None else data[0]['porcentaje_contenedor'],
+        "porcentaje_contenedor": item.porcentaje_contenedor if item.porcentaje_contenedor != "" else data[0]['porcentaje_contenedor'],
         "fecha": fecha,
         "morning": item.morning if item.morning != "" else data[0]['morning'],
         "morning_porcion": item.morning_porcion if item.morning_porcion != "" else data[0]['morning_porcion'],
