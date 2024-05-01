@@ -5,6 +5,8 @@ from databases import Database
 from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy import MetaData, create_engine, Table, Column, Integer, String
+from fastapi.middleware.cors import CORSMiddleware
+
 
 class Item(BaseModel):
     porcentaje_contenedor: Optional[str]
@@ -28,6 +30,14 @@ metadata.create_all(engine)
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.on_event("startup")
 async def startup():
     await database.connect()
@@ -36,12 +46,14 @@ async def startup():
 async def shutdown():
     await database.disconnect()
 
+# Retrieves all data form the database
 @app.get("/datos/")
 async def read_items():
     query = "SELECT * FROM datos;"
     results = await database.fetch_all(query)
     return results
 
+# 
 @app.get("/contenedor/")
 async def read_latest_porcentaje_contenedor():
     query = "SELECT porcentaje_contenedor FROM datos ORDER BY fecha DESC LIMIT 1;"
