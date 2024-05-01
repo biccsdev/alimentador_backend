@@ -112,8 +112,6 @@ async def update_property_item(item: Item):
     data = await read_latest_entry()
     fecha = data[0]['fecha']
 
-
-    # Create the SQL query
     query = """
     UPDATE datos 
     SET 
@@ -129,21 +127,19 @@ async def update_property_item(item: Item):
         ultima_comida = :ultima_comida
     WHERE fecha = :fecha
     """
-    # Extract the relevant fields from the item
     values = {
-        "porcentaje_contenedor": item.porcentaje_contenedor if item.porcentaje_contenedor != "" else data[0]['porcentaje_contenedor'],
+        "porcentaje_contenedor": item.porcentaje_contenedor if item.porcentaje_contenedor is not None else data[0]['porcentaje_contenedor'],
         "fecha": fecha,
         "morning": item.morning if item.morning != "" else data[0]['morning'],
         "morning_porcion": item.morning_porcion if item.morning_porcion != "" else data[0]['morning_porcion'],
         "lunch": item.lunch if item.lunch != "" else data[0]['lunch'],
-        "lunch_porcion": item.lunch_porcion if  item.lunch_porcion != "" else data[0]['lunch_porcion'],
+        "lunch_porcion": item.lunch_porcion if item.lunch_porcion != "" else data[0]['lunch_porcion'],
         "dinner": item.dinner if item.dinner != "" else data[0]['dinner'],
         "dinner_porcion": item.dinner_porcion if item.dinner_porcion != "" else data[0]['dinner_porcion'],
-        "porcion": item.porcion if  item.porcion != "" else data[0]['porcion'],
+        "porcion": item.porcion if item.porcion != "" else data[0]['porcion'],
         "ultima_comida": item.ultima_comida if item.ultima_comida != "" else data[0]['ultima_comida'], 
     }
 
-    # Execute the query
     if await database.execute(query, values):
         return {"message": "Item has been updated successfully"}
     else:
