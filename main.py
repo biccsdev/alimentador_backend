@@ -6,6 +6,8 @@ from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy import MetaData, create_engine, Table, Column, Integer, String
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime, timedelta
+import pytz
 
 
 class Item(BaseModel):
@@ -65,6 +67,25 @@ async def read_latest_porcion():
     query = "SELECT porcion FROM datos ORDER BY fecha DESC LIMIT 1;"
     results = await database.fetch_all(query)
     return results
+
+
+@app.get("/next/")
+async def read_next_meal():
+    # Get the latest schedule
+    schedule = await read_latest_schedule()
+    morning_time = datetime.strptime(schedule[0]['morning'], "%m/%d/%Y %H:%M:%S").time()
+    lunch_time = datetime.strptime(schedule[0]['lunch'], "%m/%d/%Y %H:%M:%S").time()
+    dinner_time = datetime.strptime(schedule[0]['dinner'], "%m/%d/%Y %H:%M:%S").time()
+
+    my_tz = pytz.timezone('America/Hermosillo')
+
+# Get the current time in your timezone
+    current_time = datetime.now(my_tz).time()
+
+    if is_approx_equal(current_time, morning_time) or is_approx_equal(current_time, lunch_time) or is_approx_equal(current_time, dinner_time):
+        return True
+    else:
+        return False
 
 
 @app.get("/schedule/")
@@ -144,3 +165,10 @@ async def update_property_item(item: Item):
         return {"message": "Item has been updated successfully"}
     else:
         print("** Something happened, couldn't update item! **")
+
+
+def is_approx_equal(time1, time2, delta_minutes=1):
+    delta = timedelta(minutes=delta_minutes)
+    lower_bound = (datetime.combine(datetime.today(), time1) - delta).time()
+    upper_bound = (datetime.combine(datetime.today(), time1) + delta).time()
+    return lower_bound <= time2 <= upper_bound
